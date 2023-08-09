@@ -1,7 +1,8 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-auth.js";
-import { getDatabase } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-database.js";
+import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-firestore.js";
+import { getStorage,ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-storage.js";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -20,7 +21,9 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth= getAuth();
 const provider = new GoogleAuthProvider();
-const database =getDatabase(app);
+// Inițializarea și utilizarea Firestore 
+const firestoreDB = getFirestore(app);
+const storage = getStorage();
 
 // Function to check if the user is logged in using Firebase Authentication
 function isUserLoggedIn() {
@@ -70,34 +73,120 @@ loginbutton.addEventListener('click',(e)=>{
 
 })
 
-
-const form = document.querySelector('createJobForm');
-form.addEventListener('submit', (e) => {
+const form = document.querySelector('#createJobForm');
+form.addEventListener('submit',async (e) => {
   e.preventDefault();
 
-  const jobTitle = form.querySelector('#job-title').value;
-  const location = form.querySelector('#location').value;
-  const jobType = form.querySelector('#job-type').value;
-  const description = form.querySelector('#description').value;
-  const salary = form.querySelector('#job-salary').value;
-  const currency = form.querySelector('#job-currency').value;
+  const jobsCollection = collection(firestoreDB, "jobs");
 
-   // Push the job data to Firebase
-   database.ref('jobs').push({
-    title: jobTitle,
-    location: location,
-    type: jobType,
-    description: description,
-    salary: salary,
-    currency: currency,
-  }).then(() => {
-    // Reset the form after successful submission
+  const imageFile = form.querySelector('#job-image').files[0];
+
+  const newJobData = {
+    title: form.querySelector('#job-title').value,
+    location: form.querySelector('#location').value,
+    type: form.querySelector('#job-type').value,
+    description:  form.querySelector('#description').value,
+    salary: form.querySelector('#job-salary').value,
+    currency: form.querySelector('#job-currency').value,
+  };
+
+try {
+    // Încărcați imaginea în Firebase Storage
+    const storageRef = ref(storage, "job_images/" + imageFile.name);
+    const imageSnapshot = await uploadBytes(storageRef, imageFile);
+
+    // Obțineți URL-ul imaginii
+    const imageUrl = await getDownloadURL(imageSnapshot.ref);
+
+    // Adăugați datele în Firestore, inclusiv URL-ul imaginii
+    newJobData.imageUrl = imageUrl;
+
+    const docRef = await caddDoc(jobsCollection, newJobData);
+    console.log("Document written with ID: ", docRef.id);
+
+    // Resetați formularul
     form.reset();
 
-    // Redirect to the jobs page after successful job creation
-    window.location.href = 'job-list.html'; // Replace 'jobs.html' with the actual URL of your jobs page
-  }).catch((error) => {
-    // Handle any errors that occurred during the database operation, if needed
-    console.error('Error creating job:', error);
-  });
+  } catch (error) {
+    console.error("Error adding document: ", error);
+  }
+
 });
+
+// Recuperați datele din Firebase
+function getJobs() {
+    return collection(firestoreDB, "jobs");
+}
+
+// Funcție pentru crearea elementului HTML pentru un loc de muncă
+function createJobItemElement(jobData) {
+    const jobItem = document.createElement("div");
+    jobItem.classList.add("job-item", "p-4", "mb-4");
+
+    jobItem.innerHTML = `
+        <div class="row g-4">
+            <div class="col-sm-12 col-md-8 d-flex align-items-center">
+                <img class="flex-shrink-0 img-fluid border rounded" src="${jobData.logo}" alt="" style="width: 80px; height: 80px;">
+                <div class="text-start ps-4">
+                    <h5 class="mb-3">${jobData.jobTitle}</h5>
+                    <span class="text-truncate me-3"><i class="fa fa-map-marker-alt text-primary me-2"></i>${jobData.location}</span>
+                    <span class="text-truncate me-3"><i class="far fa-clock text-primary me-2"></i>${jobData.jobType}</span>
+                    <span class="text-truncate me-0"><i class="far fa-money-bill-alt text-primary me-2"></i>${jobData.salary}</span>
+                </div>
+            </div>
+            <div class="col-sm-12 col-md-4 d-flex flex-column align-items-start align-items-md-end justify-content-center">
+                <div class="d-flex mb-3">
+                    <a class="btn btn-light btn-square me-3" href=""><i class="far fa-heart text-primary"></i></a>
+                    <a class="btn btn-primary" href="">Aplica</a>
+                </div>
+                <small class="text-truncate"><i class="far fa-calendar-alt text-primary me-2"></i>Data limită: ${jobData.deadline}</small>
+            </div>
+        </div>
+    `;
+
+
+    return jobItem;
+}
+
+// // Populare container cu locurile de muncă din Firebase
+// getJobs().then((querySnapshot) => {
+//     const jobListContainer = document.querySelector(".job-list-container");
+
+//     querySnapshot.forEach((doc) => {
+//         const jobData = doc.data();
+//         const jobItem = createJobItemElement(jobData);
+
+//         jobListContainer.appendChild(jobItem);
+//     });
+// });
+
+// // Afișarea locurilor de muncă în funcție de filtru
+// function filterJobs(filterType) {
+//   const jobItems = document.querySelectorAll(".job-item");
+
+//   jobItems.forEach((jobItem) => {
+//       const jobType = jobItem.querySelector(".job-type").textContent;
+
+//       if (filterType === "Toate" || jobType === filterType) {
+//           jobItem.style.display = "block";
+//       } else {
+//           jobItem.style.display = "none";
+//       }
+//   });
+// }
+
+// // Evenimentul click pentru fiecare tab
+// document.querySelectorAll(".nav-pills a").forEach((tabLink) => {
+//   tabLink.addEventListener("click", function (event) {
+//       event.preventDefault();
+//       const targetTab = this.getAttribute("href");
+
+//       if (targetTab === "#tab-1") {
+//           filterJobs("Toate");
+//       } else if (targetTab === "#tab-2") {
+//           filterJobs("Full Time");
+//       } else if (targetTab === "#tab-3") {
+//           filterJobs("Part Time");
+//       }
+//   });
+// });
