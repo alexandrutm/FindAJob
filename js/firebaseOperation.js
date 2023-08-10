@@ -3,6 +3,7 @@ import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult } fr
 import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-firestore.js";
 import { getStorage,ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-storage.js";
 
+
 // Firebase config
 const firebaseConfig = {
     apiKey: "AIzaSyDCcTKpPdMmC4SiMPiluWX4Njbp09tWrxc",
@@ -35,6 +36,7 @@ function redirectToCreateJob() {
     window.location.href = 'create_job.html';
 }
 
+//login
 loginbutton.addEventListener('click',(e)=>{
     if(!isUserLoggedIn())
     {
@@ -70,71 +72,75 @@ loginbutton.addEventListener('click',(e)=>{
 })
 
 const form = document.querySelector('#createJobForm');
+if(form)
+{
 form.addEventListener('submit',async (e) => {
-  e.preventDefault();
-
-  const jobsCollection = collection(firestoreDB, "jobs");
-
-  const imageFile = form.querySelector('#job-image').files[0];
-
-  const newJobData = {
-    title: form.querySelector('#job-title').value,
-    location: form.querySelector('#location').value,
-    type: form.querySelector('#job-type').value,
-    description:  form.querySelector('#description').value,
-    salary: form.querySelector('#job-salary').value,
-    currency: form.querySelector('#job-currency').value,
-  };
-
-try {
-    const storageRef = ref(storage, "job_images/" + imageFile.name);
-    const imageSnapshot = await uploadBytes(storageRef, imageFile);
-
-    const imageUrl = await getDownloadURL(imageSnapshot.ref);
-
-    newJobData.imageUrl = imageUrl;
-
-    const docRef = await caddDoc(jobsCollection, newJobData);
-    console.log("Document written with ID: ", docRef.id);
-
-    form.reset();
-
-  } catch (error) {
-    console.error("Error adding document: ", error);
-  }
-
-});
+    e.preventDefault();
+    
+        const jobsCollection = collection(firestoreDB, "jobs");
+        const imageFile = form.querySelector('#job-image').files[0];
+    
+        const newJobData = {
+        title: form.querySelector('#job-title').value,
+        location: form.querySelector('#location').value,
+        type: form.querySelector('#job-type').value,
+        description:  form.querySelector('#description').value,
+        salary: form.querySelector('#job-salary').value,
+        currency: form.querySelector('#job-currency').value,
+        deadline:form.querySelector('#job-deadline').value,
+        };
+    
+        try {
+        const storageRef = ref(storage, "job_images/" + imageFile.name);
+        const imageSnapshot = await uploadBytes(storageRef, imageFile);
+    
+        const imageUrl = await getDownloadURL(imageSnapshot.ref);
+    
+        newJobData.imageUrl = imageUrl;
+    
+        const docRef = await addDoc(jobsCollection, newJobData);
+        console.log("Document written with ID: ", docRef.id);
+    
+        form.reset();
+    
+        } catch (error) {
+        console.error("Error adding document: ", error);
+        }
+    });
+}
 
 
 // Funcția pentru adăugarea unui loc de muncă în containerul job-list-container
 function addJobToContainer(jobData) {
-  const jobItem = document.createElement("div");
-  jobItem.classList.add("job-item");
-
-  jobItem.innerHTML = `
-      <div class="row g-4">
-          <div class="col-sm-12 col-md-8 d-flex align-items-center">
-              <img class="flex-shrink-0 img-fluid border rounded" src="${jobData.logo}" alt="" style="width: 80px; height: 80px;">
-              <div class="text-start ps-4">
-                  <h5 class="mb-3">${jobData.jobTitle}</h5>
-                  <span class="text-truncate me-3"><i class="fa fa-map-marker-alt text-primary me-2"></i>${jobData.location}</span>
-                  <span class="text-truncate me-3"><i class="far fa-clock text-primary me-2"></i>${jobData.jobType}</span>
-                  <span class="text-truncate me-0"><i class="far fa-money-bill-alt text-primary me-2"></i>${jobData.salary}</span>
-              </div>
-          </div>
-          <div class="col-sm-12 col-md-4 d-flex flex-column align-items-start align-items-md-end justify-content-center">
-              <div class="d-flex mb-3">
-                  <a class="btn btn-light btn-square me-3" href=""><i class="far fa-heart text-primary"></i></a>
-                  <a class="btn btn-primary" href="">Aplica</a>
-              </div>
-              <small class="text-truncate"><i class="far fa-calendar-alt text-primary me-2"></i>Data limită: ${jobData.deadline}</small>
-          </div>
-      </div>
-  `;
-
-  document.querySelector(".job-list-container").appendChild(jobItem);
-}
-
+    const jobItem = document.createElement("div");
+    jobItem.classList.add("job-item");
+  
+    jobItem.innerHTML = `
+        <div class="row g-4">
+            <div class="col-sm-12 col-md-8 d-flex align-items-center">
+                <img class="flex-shrink-0 img-fluid border rounded" src="${jobData.imageUrl}" alt="" style="width: 80px; height: 80px;">
+                <div class="text-start ps-4">
+                    <h5 class="mb-3">${jobData.title}</h5>
+                    <span class="text-truncate me-3"><i class="fa fa-map-marker-alt text-primary me-2"></i>${jobData.location}</span>
+                    <span class="text-truncate me-3"><i class="far fa-clock text-primary me-2"></i>${jobData.type}</span>
+                    <span class="text-truncate me-0"><i class="far fa-money-bill-alt text-primary me-2"></i>${jobData.currency}</span>
+                </div>
+            </div>
+            <div class="col-sm-12 col-md-4 d-flex flex-column align-items-start align-items-md-end justify-content-center">
+                <div class="d-flex mb-3">
+                    <a class="btn btn-light btn-square me-3" href=""><i class="far fa-heart text-primary"></i></a>
+                    <a class="btn btn-primary" href="">Aplica</a>
+                </div>
+                <small class="text-truncate"><i class="far fa-calendar-alt text-primary me-2"></i>Data limită: 10.10.2002</small>
+            </div>
+        </div>
+    `;
+    
+    const jobListContainer = document.querySelector(".job-list-container");
+    if (jobListContainer) {
+      jobListContainer.appendChild(jobItem);
+    }
+  }
 // Funcția pentru filtrarea locurilor de muncă
 function filterJobs(filterType) {
   const jobItems = document.querySelectorAll(".job-item");
@@ -167,20 +173,22 @@ document.querySelectorAll(".nav-pills a").forEach((tabLink) => {
 });
 
 console.log("A început inițializarea DOMContentLoaded");
-document.addEventListener("DOMContentLoaded", function() {
-  console.log("Evenimentul DOMContentLoaded a fost declanșat");
-  const jobData = [
-      {
-          logo: "img/com-logo-5.jpg",
-          jobTitle: "Wordpress Developer",
-          location: "Brăila, România",
-          jobType: "Full Time",
-          salary: "$123 - $456",
-          deadline: "01 Jan, 2045"
-      },
-  ];
+document.addEventListener("DOMContentLoaded", async  function() {
 
-  jobData.forEach((job) => {
-      addJobToContainer(job);
-  });
+
+    const jobsCollection = collection(firestoreDB, "jobs");
+
+    try {
+        // Obțineți toate documentele din colecție
+        const querySnapshot = await getDocs(jobsCollection);
+    
+        // Parcurgeți fiecare document și adăugați-l în container
+        querySnapshot.forEach((doc) => {
+          const jobData = doc.data();
+          addJobToContainer(jobData);
+        });
+      } catch (error) {
+        console.error("Error fetching documents: ", error);
+      }
+
 });
