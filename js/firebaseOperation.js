@@ -75,6 +75,8 @@ const form = document.querySelector('#createJobForm');
 if(form)
 {
 form.addEventListener('submit',async (e) => {
+    const messageBox = document.getElementById("messageBox");
+
     e.preventDefault();
     
         const jobsCollection = collection(firestoreDB, "jobs");
@@ -100,7 +102,7 @@ form.addEventListener('submit',async (e) => {
     
         const docRef = await addDoc(jobsCollection, newJobData);
         console.log("Document written with ID: ", docRef.id);
-    
+        messageBox.textContent = "Document uploaded successfully.";
         form.reset();
     
         } catch (error) {
@@ -116,22 +118,26 @@ function addJobToContainer(jobData) {
     jobItem.classList.add("job-item");
   
     jobItem.innerHTML = `
-        <div class="row g-4">
-            <div class="col-sm-12 col-md-8 d-flex align-items-center">
-                <img class="flex-shrink-0 img-fluid border rounded" src="${jobData.imageUrl}" alt="" style="width: 80px; height: 80px;">
-                <div class="text-start ps-4">
-                    <h5 class="mb-3">${jobData.title}</h5>
-                    <span class="text-truncate me-3"><i class="fa fa-map-marker-alt text-primary me-2"></i>${jobData.location}</span>
-                    <span class="text-truncate me-3"><i class="far fa-clock text-primary me-2"></i>${jobData.type}</span>
-                    <span class="text-truncate me-0"><i class="far fa-money-bill-alt text-primary me-2"></i>${jobData.currency}</span>
+        <div class="job-item p-4 mb-4">
+            <div class="row g-4">
+                <div class="col-sm-12 col-md-8 d-flex align-items-center">
+                    <img class="flex-shrink-0 img-fluid border rounded" src="${jobData.imageUrl}" alt="" style="width: 80px; height: 80px;">
+                    <div class="text-start ps-4">
+                        <h5 class="mb-3">${jobData.title}</h5>
+                        <span class="text-truncate me-3"><i class="fa fa-map-marker-alt text-primary me-2"></i>${jobData.location}</span>
+                        <span class="text-truncate me-3"><i class="far fa-clock text-primary me-2"></i>${jobData.type}</span>
+                        <span class="text-truncate me-0"><i class="far fa-money-bill-alt text-primary me-2"></i>${jobData.salary} ${jobData.currency}</span>
+                    </div>
                 </div>
-            </div>
-            <div class="col-sm-12 col-md-4 d-flex flex-column align-items-start align-items-md-end justify-content-center">
-                <div class="d-flex mb-3">
-                    <a class="btn btn-light btn-square me-3" href=""><i class="far fa-heart text-primary"></i></a>
-                    <a class="btn btn-primary" href="">Aplica</a>
+                <div class="col-sm-12 col-md-4 d-flex flex-column align-items-start align-items-md-end justify-content-center">
+                    <div class="d-flex mb-3">
+                        <a class="btn btn-light btn-square me-3" href=""><i class="far fa-heart text-primary"></i></a>
+                        <a class="btn btn-primary" href="">Aplica</a>
+                    </div>
+                    <small class="text-truncate"><i class="far fa-calendar-alt text-primary me-2"></i>Data limită: ${jobData.deadline}</small>
+                    <!-- Hidden description field -->
+                    <div class="description" style="display: none;">${jobData.description}</div>    
                 </div>
-                <small class="text-truncate"><i class="far fa-calendar-alt text-primary me-2"></i>Data limită: 10.10.2002</small>
             </div>
         </div>
     `;
@@ -172,12 +178,8 @@ document.querySelectorAll(".nav-pills a").forEach((tabLink) => {
   });
 });
 
-console.log("A început inițializarea DOMContentLoaded");
 document.addEventListener("DOMContentLoaded", async  function() {
-
-
     const jobsCollection = collection(firestoreDB, "jobs");
-
     try {
         // Obțineți toate documentele din colecție
         const querySnapshot = await getDocs(jobsCollection);
