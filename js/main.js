@@ -143,6 +143,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     <span class="text-truncate me-3"><i class="far fa-clock text-primary me-2"></i>${jobDetails.type}</span>
                     <span class="text-truncate me-0"><i class="far fa-money-bill-alt text-primary me-2"></i>${jobDetails.salary} </span>
                 </div>
+                <div class="col-sm-12 col-md-4 d-flex flex-column align-items-start align-items-md-end justify-content-center">
+                    <div class="d-flex mb-3">
+                        <a class="btn btn-primary" href="">Aplica rapid</a>
+                    </div>
+                </div>
             </div>
             `;
         }
@@ -152,8 +157,28 @@ document.addEventListener('DOMContentLoaded', function() {
         if(selectedJobDescription)
         {
             selectedJobDescription.innerHTML=` <h4 class="mb-3">Descriere Job</h4>
-            <p>${jobDetails.description}</p>
-`
+            <p>${jobDetails.description}</p>`;
+        }
+
+        const extendedDescription=document.querySelector('.job-extended-details');
+
+        if(extendedDescription)
+        {
+            extendedDescription.innerHTML=`
+            <div class="bg-light rounded p-5 mb-4 wow slideInUp" data-wow-delay="0.1s">                     
+            <h4 class="mb-4">Job Summery</h4>
+            <p><i class="fa fa-angle-right text-primary me-2"></i>Data publicarii:${jobDetails.deadline}</p>
+            <p><i class="fa fa-angle-right text-primary me-2"></i>Pozitii libere: 3 </p>
+            <p><i class="fa fa-angle-right text-primary me-2"></i>Tipul jobului: ${jobDetails.type}</p>
+            <p><i class="fa fa-angle-right text-primary me-2"></i>Salariul:${jobDetails.salary}</p>
+            <p><i class="fa fa-angle-right text-primary me-2"></i>Brăila, România</p>
+            <p class="m-0"><i class="fa fa-angle-right text-primary me-2"></i>Data limita: ${jobDetails.deadline}</p>
+            </div>
+            <div class="bg-light rounded p-5 wow slideInUp" data-wow-delay="0.1s">
+                <h4 class="mb-4">Detalii Companie</h4>
+                <p class="m-0">Suntem o echipă de specialiști în IT pasionați de explorarea continuă și de găsirea celor mai bune soluții pentru afacerea ta. Indiferent de dimensiunea sau complexitatea proiectului tău, suntem aici pentru a livra rezultate de excepție.</p>
+            </div>
+       `;
         }
 
     }
