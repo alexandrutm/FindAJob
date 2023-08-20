@@ -391,3 +391,9 @@
     padding-right: 0;
     border-right: none;
 }
+
+.btn-disabled {
+    background-color: #ccc; 
+    color: #666; 
+    cursor: not-allowed; 
+}

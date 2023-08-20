@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, doc, updateDoc, getDocs, arrayUnion  } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-firestore.js";
 import { getStorage,ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-storage.js";
 
 
@@ -23,20 +23,15 @@ const provider = new GoogleAuthProvider();
 const firestoreDB = getFirestore(app);
 const storage = getStorage();
 
-// Function to check if the user is logged in using Firebase Authentication
 function isUserLoggedIn() {
-    // Check if there is a currently authenticated user
     const user = auth.currentUser;
 
     return !!user;
 }
-
-// Function to redirect the user to the "create job" page
 function redirectToCreateJob() {
     window.location.href = 'create_job.html';
 }
 
-//login
 loginbutton.addEventListener('click',(e)=>{
     if(!isUserLoggedIn())
     {
@@ -44,22 +39,17 @@ loginbutton.addEventListener('click',(e)=>{
 
         getRedirectResult(auth)
             .then((result) => {
-                // This gives you a Google Access Token. You can use it to access Google APIs.
                 const credential = GoogleAuthProvider.credentialFromResult(result);
                 const token = credential.accessToken;
     
-                // The signed-in user info.
                 const user = result.user;
                 
                 redirectToCreateJob();
 
             }).catch((error) => {
-                // Handle Errors here.
                 const errorCode = error.code;
                 const errorMessage = error.message;
-                // The email of the user's account used.
                 const email = error.customData.email;
-                // The AuthCredential type that was used.
                 const credential = GoogleAuthProvider.credentialFromError(error);
             });
 
@@ -71,6 +61,7 @@ loginbutton.addEventListener('click',(e)=>{
 
 })
 
+//upload job
 const form = document.querySelector('#createJobForm');
 if(form)
 {
@@ -90,6 +81,7 @@ form.addEventListener('submit',async (e) => {
         salary: form.querySelector('#job-salary').value,
         currency: form.querySelector('#job-currency').value,
         deadline:form.querySelector('#job-deadline').value,
+        applicants:[]
         };
     
         try {
@@ -111,12 +103,12 @@ form.addEventListener('submit',async (e) => {
     });
 }
 
-
 // Funcția pentru adăugarea unui loc de muncă în containerul job-list-container
 function addJobToContainer(jobData) {
     const jobItem = document.createElement("div");
     jobItem.classList.add("job-item");
-  
+    jobItem.id=jobData.id;
+
     jobItem.innerHTML = `
         <div class="job-item p-4 mb-4">
             <div class="row g-4">
@@ -135,8 +127,9 @@ function addJobToContainer(jobData) {
                         <a class="btn btn-primary" href="">Aplica</a>
                     </div>
                     <small class="text-truncate"><i class="far fa-calendar-alt text-primary me-2"></i>Data limită: ${jobData.deadline}</small>
-                    <!-- Hidden description field -->
-                    <div class="description" style="display: none;">${jobData.description}</div>    
+                    <!-- Hidden field -->
+                    <div class="description" style="display: none;">${jobData.description}</div>  
+                    <div class="jobId" style="display: none;">${jobData.id}</div>      
                 </div>
             </div>
         </div>
@@ -181,12 +174,11 @@ document.querySelectorAll(".nav-pills a").forEach((tabLink) => {
 document.addEventListener("DOMContentLoaded", async  function() {
     const jobsCollection = collection(firestoreDB, "jobs");
     try {
-        // Obțineți toate documentele din colecție
         const querySnapshot = await getDocs(jobsCollection);
     
-        // Parcurgeți fiecare document și adăugați-l în container
         querySnapshot.forEach((doc) => {
           const jobData = doc.data();
+          jobData.id=doc.id;
           addJobToContainer(jobData);
         });
       } catch (error) {
@@ -194,3 +186,123 @@ document.addEventListener("DOMContentLoaded", async  function() {
       }
 
 });
+
+//aplica pentru altcineva
+const applicationForm = document.querySelector('#applicationForm');
+if (applicationForm) {
+  applicationForm.addEventListener('submit', async (e) => {
+    const messageBox = document.getElementById("applicationMessageBox");
+
+    e.preventDefault();
+
+    const applicationsCollection = collection(firestoreDB, "applications");
+    const cvFile = applicationForm.querySelector('#cv').files[0];
+
+    const newApplicationData = {
+      name: applicationForm.querySelector('#name').value,
+      email: applicationForm.querySelector('#email').value,
+      message: applicationForm.querySelector('#message').value,
+    };
+
+    var applicationDocRef;
+    try {
+      const docRef = await addDoc(applicationsCollection, newApplicationData);
+      applicationDocRef=docRef;
+      console.log("Document written with ID: ", docRef.id);
+
+      if (cvFile) {
+        const storageRef = ref(storage, "cv_files/" + docRef.id + "-" + cvFile.name);
+        const cvSnapshot = await uploadBytes(storageRef, cvFile);
+
+        const cvUrl = await getDownloadURL(cvSnapshot.ref);
+        newApplicationData.cvUrl = cvUrl;
+      }
+
+      messageBox.textContent = "Application submitted successfully.";
+      applicationForm.reset();
+
+    } catch (error) {
+      console.error("Error adding application: ", error);
+      messageBox.textContent = "Error submitting application.";
+    }
+
+    const storedJobDetails = localStorage.getItem('jobDetails');
+    if (storedJobDetails) {
+        const jobDetails = JSON.parse(storedJobDetails);
+        // Adaugam referinta catre aplicatie la jobul curent
+        const selectedJobContainer = document.querySelector('.selected-job-container');
+
+        const jobDocRef = doc(firestoreDB, "jobs", jobDetails.jobId);
+
+        try {
+        await updateDoc(jobDocRef, {
+            applicants: arrayUnion(applicationDocRef)
+        });
+
+        console.log("Application added to the job's applicant list.");
+        messageBox.textContent = "Application submitted successfully.";
+        applicationForm.reset();
+        } catch (error) {
+        console.error("Error adding application to job: ", error);
+        messageBox.textContent = "Error submitting application.";
+        }
+    }
+  });
+}
+
+// Funcția pentru aplicarea rapidă a unui job
+async function applyForJobQuickly(jobId) {
+    const applicationsCollection = collection(firestoreDB, "applications");
+    
+    const user = auth.currentUser;
+    const displayName = user.displayName;
+    const email = user.email;
+    
+    const newApplicationData = {
+      name: displayName,
+      email: email,
+      message: "Aplicare rapidă", 
+    };
+    
+    try {
+      const docRef = await addDoc(applicationsCollection, newApplicationData);
+      console.log("Document written with ID: ", docRef.id);
+    
+      // Adaugă referința către aplicație la jobul curent
+      const jobDocRef = doc(firestoreDB, "jobs", jobId);
+      await updateDoc(jobDocRef, {
+        applicants: arrayUnion(docRef)
+      });
+    
+
+
+      console.log("Application added to the job's applicant list.");
+    
+    } catch (error) {
+      console.error("Error adding application: ", error);
+    }
+  }
+  
+// Funcție pentru asocierea evenimentului de click cu butonul "Aplica rapid"
+function attachQuickApplyEvent() {
+    const quickApplyButton = document.querySelector('#quickApplyButton');
+    if (quickApplyButton) {
+        quickApplyButton.addEventListener('click', async () => {
+            const storedJobDetails = localStorage.getItem('jobDetails');
+            if (storedJobDetails) {
+                const jobDetails = JSON.parse(storedJobDetails);
+                await applyForJobQuickly(jobDetails.jobId);
+
+                quickApplyButton.textContent = "Ai aplicat deja";
+                quickApplyButton.disabled = true;
+                quickApplyButton.classList.add("btn-disabled");
+                console.log("Quick application submitted successfully.");
+            } else {
+                console.error("Error: No job details found.");
+            }
+        });
+    }
+}
+
+// Asigură-te că DOM-ul este complet încărcat înainte de a apela funcția de atașare a evenimentului
+document.addEventListener('DOMContentLoaded', attachQuickApplyEvent);

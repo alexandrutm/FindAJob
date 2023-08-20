@@ -88,7 +88,6 @@
                 <div class="row gy-5 gx-4">
                     <div class="col-lg-8">
                         <div class="selected-job-container">
-                            <!-- Job information will be displayed here -->
                         </div>
 
                         <div class="mb-5">
@@ -98,24 +97,28 @@
         
                         <div class="">
                             <h4 class="mb-4">Aplica pentru altcineva</h4>
-                            <form>
-                                <div class="row g-3">
-                                    <div class="col-12 col-sm-6">
-                                        <input type="text" class="form-control" placeholder="Nume">
-                                    </div>
-                                    <div class="col-12 col-sm-6">
-                                        <input type="email" class="form-control" placeholder="Email">
-                                    </div>
-                                    <div class="col-12">
-                                        <input type="file" class="form-control bg-white">
-                                    </div>
-                                    <div class="col-12">
-                                        <textarea class="form-control" rows="5" placeholder="Mesajul tau"></textarea>
-                                    </div>
-                                    <div class="col-12">
-                                        <button class="btn btn-primary w-100" type="submit">Aplica</button>
-                                    </div>
+                            <form id="applicationForm">
+                              <div class="row g-3">
+                                <div class="col-12 col-sm-6">
+                                  <input type="text" class="form-control" placeholder="Nume" id="name">
                                 </div>
+                                <div class="col-12 col-sm-6">
+                                  <input type="email" class="form-control" placeholder="Email" id="email">
+                                </div>
+                                <div class="col-12">
+                                  <label for="cv">Cv-ul</label>
+                                  <input type="file" class="form-control bg-white" id="cv">
+                                </div>
+                                <div class="col-12">
+                                  <textarea class="form-control" rows="5" placeholder="Mesajul tau" id="message"></textarea>
+                                </div>
+                                <div class="col-12">
+                                  <button class="btn btn-primary w-100" type="submit">Aplica</button>
+                                </div>
+                                <div class="col-12 my-4">
+                                    <div id="applicationMessageBox"></div>
+                                </div>
+                              </div>
                             </form>
                         </div>
                     </div>

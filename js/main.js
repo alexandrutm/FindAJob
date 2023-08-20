@@ -1,3 +1,6 @@
+
+
+
 (function ($) {
     "use strict";
 
@@ -102,7 +105,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (jobListContainer) {
         jobListContainer.addEventListener('click', function(event) {
             const jobItem = event.target.closest('.job-item');
-
             if (jobItem) {
                 const jobDetails = {
                     imageUrl: jobItem.querySelector('.img-fluid').getAttribute('src'),
@@ -111,12 +113,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     type: jobItem.querySelector('.fa-clock').parentNode.textContent,
                     salary: jobItem.querySelector('.fa-money-bill-alt').parentNode.textContent,
                     deadline: jobItem.querySelector('.fa-calendar-alt').parentNode.textContent.replace('Data limită: ', ''),
-                    description: jobItem.querySelector('.description').textContent
+                    description: jobItem.querySelector('.description').textContent,
+                    jobId:jobItem.querySelector('.jobId').textContent
                 };
-
-                // Store jobDetails in localStorage
                 localStorage.setItem('jobDetails', JSON.stringify(jobDetails));
-
                 window.location.href = 'job-detail.html';
             }
         });
@@ -124,18 +124,14 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Retrieve jobDetails from localStorage
     const storedJobDetails = localStorage.getItem('jobDetails');
-
     if (storedJobDetails) {
         const jobDetails = JSON.parse(storedJobDetails);
-
-        // Update the content of the selected job container
         const selectedJobContainer = document.querySelector('.selected-job-container');
 
         if (selectedJobContainer) {
             selectedJobContainer.innerHTML = `
-            <div class="d-flex align-items-center mb-5">
+            <div class="d-flex align-items-center mb-5" jobId="${jobDetails.jobId}">
                 <img class="flex-shrink-0 img-fluid border rounded" src="${jobDetails.imageUrl}" alt="" style="width: 80px; height: 80px;">
                 <div class="text-start ps-4">
                     <h3 class="mb-3">${jobDetails.title}</h3>
@@ -145,7 +141,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div class="col-sm-12 col-md-4 d-flex flex-column align-items-start align-items-md-end justify-content-center">
                     <div class="d-flex mb-3">
-                        <a class="btn btn-primary" href="">Aplica rapid</a>
+                    <a id="quickApplyButton" class="btn btn-primary" href="javascript:void(0);">Aplica rapid</a>
                     </div>
                 </div>
             </div>
