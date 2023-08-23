@@ -82,22 +82,43 @@
     
 })(jQuery);
 
-// document.addEventListener('DOMContentLoaded', function() {
-//     // Add an event listener to each tab link
-//     document.querySelectorAll('.nav-pills a[data-bs-toggle="pill"]').forEach(tabLink => {
-//         tabLink.addEventListener('click', () => {
-//             // Get the ID of the selected tab content
-//             const selectedTabId = tabLink.getAttribute('href');
-//             console.log(`Selected Tab: ${selectedTabId}`);
+document.addEventListener("DOMContentLoaded", function () {
+    const jobListContainer = document.querySelector('.job-list-container');
+    const jobTabs = document.querySelectorAll(".nav-pills a[data-bs-toggle='pill']");
 
-//             // You can perform additional actions here based on the selected tab,
-//             // such as fetching and displaying jobs associated with that tab.
-//             // You might need to add AJAX requests or other logic depending on your implementation.
-//         });
-//     });
+    if(jobListContainer && jobTabs)
+    {
+        jobTabs.forEach(tab => {
+            tab.addEventListener("click", function (event) {
+                event.preventDefault();
+    
+                // Remove 'active' class from all tabs
+                jobTabs.forEach(tab => {
+                    tab.classList.remove("active");
+                });
+    
+                // Add 'active' class to the clicked tab
+                tab.classList.add("active");
+    
+                // Get the job type from the clicked tab's inner text
+                const tabType = tab.querySelector("h6").textContent.trim();
+    
+                // Show or hide job listings based on the jobType
+                const jobItems = jobListContainer.querySelectorAll(".job-item");
+                jobItems.forEach(jobItem => {
+                    const itemType = jobItem.querySelector('.fa-clock').parentNode.textContent;
+                    if (tabType === "Toate" || itemType === tabType) {
+                        jobItem.style.display = "block";
+                    } else {
+                        jobItem.style.display = "none";
+                    }
+                });
+            });
+        });
+    }
+   
+});
 
-//     // You can also add similar event listeners for the job items if you want to track job selection.
-// });
 
 document.addEventListener('DOMContentLoaded', function() {
     const jobListContainer = document.querySelector('.job-list-container');

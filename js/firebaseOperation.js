@@ -6,14 +6,14 @@ import { getStorage,ref, uploadBytes, getDownloadURL } from "https://www.gstatic
 
 // Firebase config
 const firebaseConfig = {
-    apiKey: "AIzaSyDCcTKpPdMmC4SiMPiluWX4Njbp09tWrxc",
-    authDomain: "findajob-75780.firebaseapp.com",
-    projectId: "findajob-75780",
-    storageBucket: "findajob-75780.appspot.com",
-    messagingSenderId: "561262637440",
-    appId: "1:561262637440:web:e1b41de16d55bdd6a71165",
-    measurementId: "G-4B4GBB2BMW"
-  };
+  apiKey: "AIzaSyBHjXrIvH99X0ezI18BZ2dCR8KVAHRu_DA",
+  authDomain: "findajob-a0c7a.firebaseapp.com",
+  projectId: "findajob-a0c7a",
+  storageBucket: "findajob-a0c7a.appspot.com",
+  messagingSenderId: "135848872701",
+  appId: "1:135848872701:web:ef2dd55ab673b06b854c94",
+  measurementId: "G-NXFSKEF3PZ"
+};
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
