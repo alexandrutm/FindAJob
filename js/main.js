@@ -200,3 +200,37 @@ document.addEventListener('DOMContentLoaded', function() {
 
     }
 });
+
+
+const searchBtn=document.getElementById("searchButton");
+
+if(searchBtn)
+{
+    searchBtn.addEventListener("click", function () {
+        performSearch();
+    });
+
+    function performSearch() {
+        var keyword = document.getElementById("keywordInput").value.toLowerCase();
+        var location = document.getElementById("locationSelect").value;
+
+        var jobListContainer = document.querySelector(".job-list-container");
+        var jobs = jobListContainer.querySelectorAll(".job-item");
+
+        jobs.forEach(function (job) {
+            var jobKeyword = job.querySelector('h5').textContent.toLowerCase();
+            var jobLocation = job.querySelector('.fa-map-marker-alt').parentNode.textContent;
+            
+            var shouldDisplay = true;
+
+            if (
+                (keyword !== "" && jobKeyword.indexOf(keyword) === -1)||
+                (location !== "" && jobLocation !== location)
+            ) {
+                shouldDisplay = false;
+            }
+
+            job.style.display = shouldDisplay ? "block" : "none";
+        });
+    }
+}
